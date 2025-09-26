@@ -7,33 +7,41 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Hiragino Kaku Gothic ProN", Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #e5ddd5;
+  background: #dfe6e9;
+}
+
+#chat-container {
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  overflow: hidden;
 }
 
 #chat-box {
-  width: 360px;
-  height: 600px;
-  background: #fff;
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
+  flex: 1;
+  padding: 15px;
   overflow-y: auto;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  background: #e5ddd5;
 }
 
 .message {
-  max-width: 70%;
-  padding: 8px 10px;
-  margin: 5px 0;
-  border-radius: 12px;
+  max-width: 75%;
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-radius: 18px;
   word-wrap: break-word;
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
 .from-guest {
@@ -47,46 +55,78 @@ body {
   background: #dcf8c6;
 }
 
-#input-area {
-  width: 360px;
+/* 新郎新婦の固定メッセージ（最上部に配置） */
+.fixed-message {
   display: flex;
-  margin-top: 5px;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+.fixed-message img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-left: 8px;
+}
+.fixed-message .text {
+  background: #06c755; /* LINEの緑 */
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 18px;
+  max-width: 75%;
+  font-size: 15px;
+  line-height: 1.4;
+  align-self: flex-end;
+}
+
+#input-area {
+  display: flex;
+  padding: 10px;
+  background: #f0f0f0;
 }
 
 #input-msg {
   flex: 1;
-  padding: 8px;
-  border-radius: 16px;
+  padding: 10px;
+  border-radius: 20px;
   border: 1px solid #ccc;
+  outline: none;
+  font-size: 15px;
 }
 
 #send-btn {
-  margin-left: 5px;
-  padding: 8px 12px;
+  margin-left: 8px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 16px;
-  background: #128C7E;
+  border-radius: 20px;
+  background: #06c755;
   color: #fff;
   cursor: pointer;
+  font-size: 15px;
 }
 </style>
 </head>
 <body>
 
-<div>
-  <div id="chat-box"></div>
+<div id="chat-container">
+  <div id="chat-box">
+    <!-- 固定メッセージ -->
+    <div class="fixed-message">
+      <div class="text">みんな今日は来てくれてありがとう！好きに書き込んでね！</div>
+      <img src="icon.png" alt="新郎新婦アイコン">
+    </div>
+  </div>
   <div id="input-area">
     <input type="text" id="input-msg" placeholder="メッセージを入力">
     <button id="send-btn">送信</button>
   </div>
 </div>
 
-<!-- Firebase SDK (モジュール版) -->
+<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
   import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
-  // 🔑 Firebase 設定情報（自分のプロジェクト情報に置き換えてください）
+  // Firebase設定
   const firebaseConfig = {
     apiKey: "AIzaSyCWQzM3HeesXei6P5obNVeNK6Z73izL9NM",
     authDomain: "genially-9c72e.firebaseapp.com",
@@ -103,12 +143,11 @@ body {
   const db = getDatabase(app);
   const messagesRef = ref(db, 'messages');
 
-  // DOM要素
   const chatBox = document.getElementById('chat-box');
   const inputMsg = document.getElementById('input-msg');
   const sendBtn = document.getElementById('send-btn');
 
-  // メッセージ表示関数
+  // メッセージ表示
   function addMessage(text, type) {
     const msg = document.createElement('div');
     msg.className = 'message ' + type;
@@ -117,13 +156,13 @@ body {
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  // メッセージ送信
+  // 送信
   sendBtn.addEventListener('click', () => {
     const text = inputMsg.value.trim();
     if (text !== '') {
       push(messagesRef, {
         text: text,
-        type: 'from-guest', // 'from-bridegroom' に変えれば新郎新婦メッセージ
+        type: 'from-guest',
         timestamp: Date.now()
       });
       inputMsg.value = '';
@@ -134,7 +173,7 @@ body {
     if (e.key === 'Enter') sendBtn.click();
   });
 
-  // Firebase リアルタイム受信
+  // リアルタイム受信
   onChildAdded(messagesRef, (snapshot) => {
     const data = snapshot.val();
     addMessage(data.text, data.type);
